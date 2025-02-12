@@ -1,6 +1,5 @@
 # Text Based Adventure Game
 # Programmed and Developed by Leslie Kong
-# Test commit change
 
 import time
 
