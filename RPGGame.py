@@ -1,21 +1,22 @@
-# Text Based Adventure Game
-# Programmed and Developed by Leslie Kong
+# RPGGame.py
 
 import time
+import character  # Import the character microservice module
 
 # -------------------------------------------------START MENU--------------------------------------------------------- #
 game_name = "Amazing Adventure Game"
 game_subtext = "Programmed by Leslie Kong\n"
-about_game = "This game is developed by Leslie Kong as part of his Software Development Project for OSU. I hope that you enjoy.\n"
+about_game = ("This game is developed by Leslie Kong as part of his Software Development Project for OSU. "
+              "I hope that you enjoy.\n")
 welcome_message = ("This text based adventure game will take you on an adventure through the Kingdom of Riverstone."
-                   "\nThere is a curse that has befallen the lands and the King has sought any and all adventurers to lift curse. "
+                   "\nThere is a curse that has befallen the lands and the King has sought any and all adventurers to lift the curse. "
                    "\nAny adventurer who finds and eliminates the curse is promised the title of Lord and equivalent lands.\n")
-start_instructions = ("Type in any of the following commands for more information or start playing.")
+start_instructions = "Type in any of the following commands for more information or start playing."
 error_command = "Sorry I could not understand that command. Please try another command.\n"
 
 start_commands = {
     "changelog": "To see features added in each version of the game",
-    "about": "Learn move about the developer",
+    "about": "Learn more about the developer",
     "start": "To create your character and begin your adventure",
     "exit": "Exits the game. Your progress will not be saved"
 }
@@ -24,7 +25,7 @@ current_ver = "v2"
 
 changelog = {
     "v1": ["Added a start menu and start options", "Added zones and traversal", "Added story text"],
-    "v2": ["Added npc support", "Added item support", "Added quest support"]
+    "v2": ["Added NPC support", "Added item support", "Added quest support"]
 }
 
 help_info = "At any time, you can use the command 'help' to show available global commands.\n"
@@ -32,7 +33,8 @@ help_info = "At any time, you can use the command 'help' to show available globa
 help_commands = {
     "help": "Show available global commands",
     "exit": "Exits the game. Your progress will not be saved",
-    "changename": "Changes your name"
+    "changename": "Change your character's name",
+    "manage": "Manage your character (view status, add experience, level up, save)"
 }
 
 game_intro = ("\nAfter a grueling week of travel, you arrive at the village on the outskirts of Riverstone Castle.\n"
@@ -48,8 +50,7 @@ username = None
 quests = [
     {"quest_val": 0, "name": "Curse of Riverstone", "progress_val": 0, "complete": False, "quest_text": ["placeholder1", "placeholder2", "placeholder3"]},
     {"quest_val": 1, "name": "Find the Beggar's lost cat", "progress_val": 0, "complete": False, "quest_text": ["placeholder1", "placeholder2", "placeholder3"]},
-    {"quest_val": 2, "name": "Help the family give their son a burial", "progress_val": 0, "complete": False,
-     "quest_text": ["placeholder1", "placeholder2", "placeholder3"]},
+    {"quest_val": 2, "name": "Help the family give their son a burial", "progress_val": 0, "complete": False, "quest_text": ["placeholder1", "placeholder2", "placeholder3"]},
 ]
 
 npcs = [
@@ -58,50 +59,35 @@ npcs = [
     {"name": "Crying Mother", "npc_val": 2, "quest_val": 2, "dialogue": ["dplaceholder1", "dplaceholder2", "dplaceholder3"]}
 ]
 
-# All the map zones and descriptions of the zone
 zones = {
-    "Mountain Peak": "The top is frigid and windy. You discover a statue of female, standing prideful with the sun"
-                     "glistening upon it. There is a family praying in front of the statue, with a small basket of "
-                     "offerings placed at its feet.",
-    "Path to Mountain Peak": "There are still signs of recent tracks to the peak. You wonder what is at the top",
-    "Abandoned Village": "The village looks to be abandoned years ago. When King Victor declared his lordship over these"
-                         "lands, many of the smaller villages were abandoned for promise of their own farmland on more "
-                         "fertile pastures.",
-    "Mountain Pass": "The pass is narrow and not well maintained. Still you persevere through",
-    "Base of Mountain": "You reach the base of the mountain. There are signs of frequent travel. It is surprising that"
-                        "the townsfolk would journey up the mountain in their weakened states.",
-    "Town": "You are immediately hit with a stench of death and decay. There is no joy or hope left in this town."
-            "You realize you must find a way to lift the curse before it's too late.",
+    "Mountain Peak": "The top is frigid and windy. You discover a statue of a female, standing pridefully with the sun glistening upon it.",
+    "Path to Mountain Peak": "There are still signs of recent tracks to the peak. You wonder what is at the top.",
+    "Abandoned Village": "The village appears to be abandoned for years. Many smaller villages were abandoned when King Victor declared his lordship.",
+    "Mountain Pass": "The pass is narrow and not well maintained. Still, you persevere through.",
+    "Base of Mountain": "You reach the base of the mountain. Signs of frequent travel are visible.",
+    "Town": "You are immediately hit with a stench of death and decay. There is no joy or hope left in this town.",
     "West Swamp": "",
     "Cave Entrance": "You come across an unassuming cave entrance. Perhaps there is a clue here.",
     "Eastern Forest": "Much of this forest has been deforested to make room for farmland.",
     "East Swamp": "",
-    "Deep Water": "The water is too deep to wade through. You will need a boat to cross",
+    "Deep Water": "The water is too deep to wade through. You will need a boat to cross.",
     "Small Island": "The island has no signs of recent activity. There is not much here.",
-    "Cavern": "The cavern is too dark to see very far, but you know it is vast from the echos. You were told that it"
-              "is easy to get lost in here so you make sure you path carefully.",
-    "Cave River": "There is a river flowing deeper into the cave. The water is warm to the touch. You think about taking"
-                  "a dip, but the water is too deep and flowing too fast so you reconsider.",
-    "Witch's Shack": "The witch invites you in. The smell is immediately intense, a mix of medicinal, rot, but also "
-                     "floral aromas. You get slightly woozy just by being in the room.",
-    "Wolf's Den": "You carefully enter the Wolf's Den. There is a stench of decaying meat. There are 2 wolves sleeping at"
-                  "the back of the den. You should leave before they wake.",
-    "Witch's Cellar": "It would be a mistake to enter while the witch is here. You should find a better time.",
-    "Western Forest": "The forest if dense. You see part of the forest where they have harvest for wood, but it seems"
-                      "there is little to no harvesting happening now",
+    "Cavern": "The cavern is too dark to see very far, but you know it is vast from the echoes.",
+    "Cave River": "There is a river flowing deeper into the cave. The water is warm to the touch.",
+    "Witch's Shack": "The witch invites you in. The smell is intense, a mix of medicinal, rot, and floral aromas.",
+    "Wolf's Den": "You carefully enter the Wolf's Den. There is a stench of decaying meat.",
+    "Witch's Cellar": "It would be a mistake to enter while the witch is here.",
+    "Western Forest": "The forest is dense. You see an area where wood is harvested.",
     "Road to Riverstone": "The road has not been maintained in months.",
-    "Guard Tower": "As you approach the guard tower, you notice that there are no guards currently posted",
-    "Castle Gates": "As you draw closer, you notice a large crowd in front of the gates. There is a line of guards in"
-                    "front of the gates blocking the crowd from entering the castle.",
+    "Guard Tower": "As you approach the guard tower, you notice there are no guards posted.",
+    "Castle Gates": "A large crowd stands in front of the gates, blocked by a line of guards.",
     "Riverstone": "You won't be able to get past the crowd. You should find another way."
 }
 
-# Zone connections for traversal
 directions = {
     "Mountain Peak": {"north": None, "east": None, "south": "Path to Mountain Peak", "west": None},
     "Path to Mountain Peak": {"north": "Mountain Peak", "east": None, "south": "Abandoned Village", "west": None},
-    "Abandoned Village": {"north": "Path to Mountain Peak", "east": "Cave Entrance", "south": "Mountain Pass",
-                          "west": None},
+    "Abandoned Village": {"north": "Path to Mountain Peak", "east": "Cave Entrance", "south": "Mountain Pass", "west": None},
     "Mountain Pass": {"north": "Abandoned Village", "east": None, "south": "Base of Mountain", "west": None},
     "Base of Mountain": {"north": "Mountain Pass", "east": None, "south": "Town", "west": None},
     "Town": {"north": "Mountain Pass", "east": "Eastern Forest", "south": "West Swamp", "west": "Western Forest"},
@@ -123,7 +109,7 @@ directions = {
     "Riverstone": {"north": None, "east": "Castle Gates", "south": None, "west": None}
 }
 
-other_options = {                           # holds addition options with "location": [npcs, items, special]
+other_options = {  
     "Mountain Peak": [[npcs[2]], [], []],
     "Path to Mountain Peak": [[], [], []],
     "Abandoned Village": [[], [], []],
@@ -148,11 +134,10 @@ other_options = {                           # holds addition options with "locat
     "Riverstone": [[], [], []]
 }
 
-
 # ------------------------------------------------START FUNCTIONS----------------------------------------------------- #
 def exit_game():
     while True:
-        check = input("Are you sure you want to exit the game? Your progress will not be saved. (Y/N) ")
+        check = input("Are you sure you want to exit the game? Please remember to save your character manually. (Y/N) ")
         if check.lower() == "n":
             return
         if check.lower() == "y":
@@ -162,41 +147,31 @@ def exit_game():
         else:
             print("Sorry I could not understand that command. Please try another command.")
 
-
 def change_log():
-    """
-    Returns change log by version
-    """
-    print("Your current version is v1")
+    print("Your current version is", current_ver)
     while True:
         version = input("Type in the version you would like to see or 'back' to go back (v1, v2, etc): ")
         if version == "back":
             return
         if version in changelog:
-            for i in range(len(changelog[version])):
-                print(changelog[version][i])
+            for line in changelog[version]:
+                print(line)
             print("\n")
         else:
-            comm_err()
-
+            print(error_command)
 
 def about():
     print(about_game)
 
-
 def comm_err():
     print(error_command)
 
-
 def start_menu():
-    """
-    Acts as a start menu for the game
-    """
     print(game_name)
     print(welcome_message)
     print(start_instructions)
-    for option in start_commands:
-        print(option, ":", start_commands[option])
+    for option, desc in start_commands.items():
+        print(f"{option}: {desc}")
     print("\n")
     while True:
         command = input("Please enter a command: ")
@@ -211,67 +186,61 @@ def start_menu():
         else:
             comm_err()
 
-# ------------------------------------------------GAME FUNCTIONS----------------------------------------------------- #
+# ------------------------------------------------Character Management Integration----------------------------------------------------- #
+def initialize_character():
+    """
+    Replaces the old username creation.
+    When starting the game, prompt the user to either create a new character or choose an existing one.
+    """
+    character.main_menu()  # Calls the character module's main_menu for selection/creation
 
+def manage_character():
+    """
+    Calls the character management menu from character.py.
+    """
+    print("\n=== Character Management ===")
+    character.character_main_menu()
+
+# ------------------------------------------------GAME FUNCTIONS----------------------------------------------------- #
 def change_name():
     """
-    Changes the name of the adventurer
+    Changes the character's name using the character module's update function.
     """
-    global username
-    while True:
-        if username:
-            pre_username = input("What would you like to change your name to? ")
-        else:
-            pre_username = input("What is your name adventurer? ")
-        confirm = input(f"Change your name to {pre_username}? (Y/N) ")
-        if confirm == 'y':
-            username = pre_username
-            return
-        elif confirm == 'n':
-            continue
-        else:
-            comm_err()
-
+    character.update_character_name()
 
 def help():
-    for option in help_commands:
-        print(option, ":", help_commands[option])
+    for option, desc in help_commands.items():
+        print(f"{option}: {desc}")
     print("\n")
 
-
 def introduction():
-    change_name()
     print(game_intro)
     print(help_info)
 
-
 def start_game():
     """
-    Starts the character in the town and allows user to traverse the map
+    Starts the character in the town and allows user to traverse the map.
     """
     location = "Town"
     while True:
-        print(f"You enter the {location}.")
+        print(f"\nYou enter the {location}.")
         print(zones[location])
         for option in directions[location]:
             if directions[location][option] is not None:
                 print(option, ":", directions[location][option])
-
-        if other_options[location][0]:                              # Prints names of all the npcs in the zone
-            print("npc : ", end="")
-            print(", ".join([other_options[location][0][i]['name'] for i in range(len(other_options[location][0]))]))
-
-        if other_options[location][1]:                              # Prints names of all the items in the zone
-            print("items : ", end="")
-            print(", ".join([other_options[location][1][i] for i in range(len(other_options[location][1]))]))
-
-
+        if other_options[location][0]:  # Prints names of all the NPCs in the zone
+            print("npc :", ", ".join([other_options[location][0][i]['name'] for i in range(len(other_options[location][0]))]))
+        if other_options[location][1]:  # Prints names of all the items in the zone
+            print("items :", ", ".join([other_options[location][1][i] for i in range(len(other_options[location][1]))]))
+        print("\nAdditional option: type 'character' to manage your character.")
         command = input("\nWhat would you like to do? ")
         print("\n")
         if command.lower() == "exit":
             exit_game()
         elif command.lower() == "changename":
             change_name()
+        elif command.lower() == "character":
+            manage_character()
         elif command.lower() == "help":
             help()
         elif command.lower() in directions[location]:
@@ -280,15 +249,15 @@ def start_game():
             else:
                 location = directions[location][command]
         elif any(other_options[location][0][i]['name'].lower() == command.lower() for i in range(len(other_options[location][0]))):
-            talk(command.lower())                               # Checks if npc is in the zone
+            talk(command.lower())
         else:
             comm_err()
 
 def talk(npc_name):
-    """Start dialogue with specific npc"""
     print(f'You talk with the {npc_name}')
 
-
+# ------------------------------------------------MAIN EXECUTION----------------------------------------------------- #
 start_menu()
+initialize_character()  # Prompt to create or choose a character
 introduction()
 start_game()
