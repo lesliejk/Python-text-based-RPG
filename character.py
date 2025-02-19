@@ -191,19 +191,14 @@ def update_character_name():
             print("A character with that name already exists. Name change cancelled.")
             return
         active_char["name"] = new_name
-        save_name_change(current_name, new_name)
+        for character in data:
+            if character["name"] == current_name:
+                character["name"] = new_name
+        save_character_data(data)
         set_active_character(new_name)
         print("Character name updated successfully!")
     else:
         print("Name change cancelled.")
-
-def save_name_change(current_name, new_name):
-    """Changes the character name in json file"""
-    data = load_character_data()
-    for character in data:
-        if character["name"] == current_name:
-            character["name"] = new_name
-    save_character_data(data)
 
 def view_character():
     """Display the active character's status."""
