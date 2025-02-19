@@ -34,7 +34,7 @@ help_commands = {
     "help": "Show available global commands",
     "exit": "Exits the game. Your progress will not be saved",
     "changename": "Change your character's name",
-    "manage": "Manage your character (view status, add experience, level up, save)"
+    "character": "Manage your character (view status, add experience, level up, save)"
 }
 
 game_intro = ("\nAfter a grueling week of travel, you arrive at the village on the outskirts of Riverstone Castle.\n"
@@ -158,7 +158,7 @@ def change_log():
                 print(line)
             print("\n")
         else:
-            print(error_command)
+            comm_err()
 
 def about():
     print(about_game)
@@ -232,7 +232,6 @@ def start_game():
             print("npc :", ", ".join([other_options[location][0][i]['name'] for i in range(len(other_options[location][0]))]))
         if other_options[location][1]:  # Prints names of all the items in the zone
             print("items :", ", ".join([other_options[location][1][i] for i in range(len(other_options[location][1]))]))
-        print("\nAdditional option: type 'character' to manage your character.")
         command = input("\nWhat would you like to do? ")
         print("\n")
         if command.lower() == "exit":

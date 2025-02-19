@@ -1,0 +1,28 @@
+[
+    {
+        "name": "Wesley",
+        "job": "Mage",
+        "level": 1,
+        "experience": 0,
+        "experienceToNextLevel": 1000,
+        "hp": 100,
+        "mp": 50,
+        "physical_attack": 10,
+        "magical_attack": 5,
+        "defense": 5,
+        "hit_rate": 5
+    },
+    {
+        "name": "Ronald",
+        "job": "Rogue",
+        "level": 1,
+        "experience": 100,
+        "experienceToNextLevel": 1000,
+        "hp": 100,
+        "mp": 50,
+        "physical_attack": 10,
+        "magical_attack": 5,
+        "defense": 5,
+        "hit_rate": 5
+    }
+]
