@@ -1,4 +1,3 @@
-<img width="1541" alt="umlg94" src="https://github.com/user-attachments/assets/195763ac-4fa9-4304-9533-6ce924334583" />
 ---
 # Character Microservice for RPGGame
 
