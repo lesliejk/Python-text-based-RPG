@@ -68,15 +68,27 @@ To retrieve the active character's details, use the `get_active_character()` fun
 
 ### Example:
 ```python
-from character import get_active_character
+import json
+import time
+import os
 
-# Request the active character
-active_character = get_active_character()
+# Write request to request.txt
+with open("request.txt", "w") as f:
+    f.write("get_active_character")
 
-if active_character:
-    print("Active Character:", active_character)
+# Wait for response (simple polling)
+while not os.path.exists("response.txt"):
+    time.sleep(1)
+
+# Read and parse response
+with open("response.txt", "r") as f:
+    response = json.loads(f.read().strip())
+
+# Process response
+if "status" in response and response["status"] == "error":
+    print(response["message"])
 else:
-    print("No active character is set.")
+    print("Active Character:", response)
 ```
 ## Character Creation
 To create a new character, use create_new_character(name, job). This function ensures the name is unique, builds the character object, and saves it to the JSON file.
@@ -88,14 +100,27 @@ If unique, it builds a new character object and saves it to character_data.json.
 The new character’s details are returned as a dictionary.
 ### Example:
 ```python
-from character import create_new_character
+import json
+import time
+import os
 
-# Create a new character
-new_character = create_new_character("Hero", "Warrior")
-if new_character:
-    print("New Character Created:", new_character)
+# Write request to request.txt
+with open("request.txt", "w") as f:
+    f.write("create_new_character name=Hero job=Warrior")
+
+# Wait for response
+while not os.path.exists("response.txt"):
+    time.sleep(1)
+
+# Read and parse response
+with open("response.txt", "r") as f:
+    response = json.loads(f.read().strip())
+
+# Process response
+if "status" in response and response["status"] == "error":
+    print(response["message"])
 else:
-    print("Character creation failed (e.g., name already exists).")
+    print("New Character Created:", response)
 ```
 
 ## Update Character Name
@@ -109,14 +134,27 @@ The updated character’s details are returned as a dictionary.
 
 ### Example:
 ```python
-from character import update_character_name
+import json
+import time
+import os
 
-# Update the active character's name
-updated_character = update_character_name("Legend")
-if updated_character:
-    print("Updated Character:", updated_character)
+# Write request to request.txt
+with open("request.txt", "w") as f:
+    f.write("update_character_name new_name=Legend")
+
+# Wait for response
+while not os.path.exists("response.txt"):
+    time.sleep(1)
+
+# Read and parse response
+with open("response.txt", "r") as f:
+    response = json.loads(f.read().strip())
+
+# Process response
+if "status" in response and response["status"] == "error":
+    print(response["message"])
 else:
-    print("Name update failed (e.g., name already exists).")
+    print("Updated Character:", response)
 ```
 
 ## Add Experience
@@ -129,14 +167,27 @@ The updated data is saved to character_data.json.
 The updated character’s details are returned as a dictionary.
 Example:
 ```python
-from character import add_experience
+import json
+import time
+import os
 
-# Add 100 experience points
-updated_character = add_experience(100)
-if updated_character:
-    print("Updated Character:", updated_character)
+# Write request to request.txt
+with open("request.txt", "w") as f:
+    f.write("add_experience exp_points=100")
+
+# Wait for response
+while not os.path.exists("response.txt"):
+    time.sleep(1)
+
+# Read and parse response
+with open("response.txt", "r") as f:
+    response = json.loads(f.read().strip())
+
+# Process response
+if "status" in response and response["status"] == "error":
+    print(response["message"])
 else:
-    print("Experience update failed.")
+    print("Updated Character:", response)
 ```
 ## Level Up
 To level up the active character, use level_up(). This increments the level, updates stats based on the character’s job, and adjusts the experience threshold for the next level.
@@ -149,14 +200,27 @@ The updated data is saved to character_data.json.
 The updated character’s details are returned as a dictionary.
 ### How It Works:
 ```python
-from character import level_up
+import json
+import time
+import os
 
-# Level up the active character
-updated_character = level_up()
-if updated_character:
-    print("Leveled Up Character:", updated_character)
+# Write request to request.txt
+with open("request.txt", "w") as f:
+    f.write("level_up")
+
+# Wait for response
+while not os.path.exists("response.txt"):
+    time.sleep(1)
+
+# Read and parse response
+with open("response.txt", "r") as f:
+    response = json.loads(f.read().strip())
+
+# Process response
+if "status" in response and response["status"] == "error":
+    print(response["message"])
 else:
-    print("Level up failed.")
+    print("Leveled Up Character:", response)
 ```
 <img width="1326" alt="umlg94_2" src="https://github.com/user-attachments/assets/4e71ce37-e93d-42a1-9962-ce52fd28e2e3" />
 
