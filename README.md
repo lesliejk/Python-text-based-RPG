@@ -5,6 +5,43 @@ This document describes how the main game (`RPGGame`) interacts with the **Chara
 
 ---
 
+# File handling functions for communication
+
+```python
+def write_request(request):
+    """Write a request to request.txt."""
+    with open("request.txt", "w") as f:
+        f.write(request)
+
+def read_response():
+    """Read the response from response.txt."""
+    try:
+        with open("response.txt", "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return None
+
+def clear_response():
+    """Remove response.txt after reading."""
+    try:
+        os.remove("response.txt")
+    except FileNotFoundError:
+        pass
+
+def response_available():
+    """Check if a response is available."""
+    return os.path.exists("response.txt")
+
+def send_request(request):
+    """Send a request and wait for the response."""
+    write_request(request)
+    while not response_available():
+        time.sleep(1)
+    response = read_response()
+    clear_response()
+    return json.loads(response)
+```    
+---
 ## 1. Overview
 
 The `RPGGame` module communicates with the **Character microservice** by calling its functions to perform various operations on character data. The microservice handles the following key functionalities:
