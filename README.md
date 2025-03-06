@@ -1,24 +1,40 @@
-# Communication Contract
+<img width="1541" alt="umlg94" src="https://github.com/user-attachments/assets/195763ac-4fa9-4304-9533-6ce924334583" />
+---
+# Character Microservice for RPGGame
 
-This document describes how the main game (RPGGame) interacts with the Character microservice. In our architecture, the main game calls functions from the Character module to request data. The Character module then retrieves the data from a local JSON file (`character_data.json`) and returns it to the main game.
+This document describes how the main game (`RPGGame`) interacts with the **Character microservice**. The microservice manages character-related operations, including data retrieval, character creation, name updates, experience management, and leveling up. It uses a local JSON file (`character_data.json`) for storage and returns data to the main game in standardized Python dictionaries.
 
 ---
 
-## 1. Requesting Data
+## 1. Overview
 
-In the main game (RPGGame), you call the functions from the Character module to **request** data. For example, to obtain the active character's details, you would call the `get_active_character()` function.
+The `RPGGame` module communicates with the **Character microservice** by calling its functions to perform various operations on character data. The microservice handles the following key functionalities:
+- Retrieving the active character's details.
+- Creating new characters with unique names.
+- Updating the active character's name.
+- Adding experience points to the active character.
+- Leveling up the active character with updated stats and experience thresholds.
+
+All interactions follow a consistent flow: `RPGGame` → `Character module` → `character_data.json` → `Character module` → `RPGGame`. The microservice processes the JSON data internally and returns it as Python dictionaries for easy integration into the main game.
+
+---
+
+## 2. Requesting Data
+
+## Get Active Character
+To retrieve the active character's details, use the `get_active_character()` function. The Character module loads the entire character list from the JSON file and filters it to return only the active character's data as a Python dictionary.
 
 ### How It Works:
-1. **RPGGame** calls `get_active_character()` from the Character module.
-2. **Character Microservice** calls `load_character_data()` to read the local JSON file.
-3. The JSON data (a list of characters) is parsed and the active character (a Python dictionary) is returned from Character back to RPGGame.
+1. `RPGGame` calls `get_active_character()` from the Character module.
+2. The Character module calls `load_character_data()` to read `character_data.json`.
+3. The JSON data (a list of characters) is parsed, and the active character is filtered out.
+4. The active character's details are returned to `RPGGame` as a dictionary.
 
-### Example Request Call (in RPGGame):
-
+### Example:
 ```python
 from character import get_active_character
 
-# RPGGame requests the active character data from the Character module.
+# Request the active character
 active_character = get_active_character()
 
 if active_character:
@@ -26,37 +42,85 @@ if active_character:
 else:
     print("No active character is set.")
 ```
-
-## 2. Receiving Data
-
-Once the main game has requested data, it receives the active character’s information as a Python dictionary. 
+## Character Creation
+To create a new character, use create_new_character(name, job). This function ensures the name is unique, builds the character object, and saves it to the JSON file.
 
 ### How It Works:
-1. The Character module processes the data fetched from the local JSON file.
-2. It returns a structured Python dictionary containing character details (e.g., name, level, job, and stats).
-3. The main game receives this dictionary and can then use it as needed.
-
-### Example Request Call (in RPGGame):
+RPGGame calls create_new_character(name, job).
+The Character module loads existing data to check for name uniqueness.
+If unique, it builds a new character object and saves it to character_data.json.
+The new character’s details are returned as a dictionary.
+### Example:
 ```python
-from character import get_active_character
+from character import create_new_character
 
-# RPGGame receives the character data after Character module retrieves it.
-character_data = get_active_character()
-
-if character_data:
-    name = character_data.get("name")
-    level = character_data.get("level")
-    job = character_data.get("job")
-    print(f"Character Name: {name}")
-    print(f"Level: {level}")
-    print(f"Job: {job}")
+# Create a new character
+new_character = create_new_character("Hero", "Warrior")
+if new_character:
+    print("New Character Created:", new_character)
 else:
-    print("No active character data available.")
+    print("Character creation failed (e.g., name already exists).")
 ```
-### Note
-1. The Character module internally accesses character_data.json to retrieve the data.
-2. The data flows from RPGGame → Character module → Local JSON file → Character module → RPGGame.
-3. The Character module does all the work of fetching and parsing the local JSON data.
-4. The data is returned in a standardized format (a Python dictionary) so that RPGGame can easily integrate it.
 
-![UML Sequence Diagram](/umlg94.png)
+## Update Character Name
+To update the active character's name, use update_character_name(new_name). This ensures the new name is unique before updating and saving the data.
+
+### How It Works:
+RPGGame calls update_character_name(new_name).
+The Character module checks for name uniqueness among existing characters.
+If unique, it updates the active character’s name and saves the changes.
+The updated character’s details are returned as a dictionary.
+
+### Example:
+```python
+from character import update_character_name
+
+# Update the active character's name
+updated_character = update_character_name("Legend")
+if updated_character:
+    print("Updated Character:", updated_character)
+else:
+    print("Name update failed (e.g., name already exists).")
+```
+
+## Add Experience
+To add experience points to the active character, use add_experience(exp_points). This updates the character's experience and saves the changes.
+
+### How It Works:
+RPGGame calls add_experience(exp_points).
+The Character module updates the active character’s experience value.
+The updated data is saved to character_data.json.
+The updated character’s details are returned as a dictionary.
+Example:
+```python
+from character import add_experience
+
+# Add 100 experience points
+updated_character = add_experience(100)
+if updated_character:
+    print("Updated Character:", updated_character)
+else:
+    print("Experience update failed.")
+```
+## Level Up
+To level up the active character, use level_up(). This increments the level, updates stats based on the character’s job, and adjusts the experience threshold for the next level.
+
+### How It Works:
+RPGGame calls level_up().
+The Character module retrieves the active character and increments its level.
+Stats are updated iteratively based on job-specific increments, and the required experience is subtracted while updating the next level threshold (may loop if multiple levels are gained).
+The updated data is saved to character_data.json.
+The updated character’s details are returned as a dictionary.
+### How It Works:
+```python
+from character import level_up
+
+# Level up the active character
+updated_character = level_up()
+if updated_character:
+    print("Leveled Up Character:", updated_character)
+else:
+    print("Level up failed.")
+```
+<img width="1326" alt="umlg94_2" src="https://github.com/user-attachments/assets/4e71ce37-e93d-42a1-9962-ce52fd28e2e3" />
+
