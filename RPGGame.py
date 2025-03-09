@@ -45,7 +45,7 @@ class StartMenu:
         self.changelog = {
             "v1": ["Added a start menu and start options", "Added zones and traversal", "Added story text"],
             "v2": ["Added NPC support", "Added item support", "Added quest support", "Added zone images display",
-                   "Added setting menu", "Refactored code to ease development"]
+                   "Added setting menu", "Added save and load feature"]
         }
         self.game_name = "Amazing Adventure Game"
         self.about = ("This game is developed by Leslie Kong as part of his Software Development Project for OSU. I "
@@ -130,13 +130,14 @@ class Game:
         """
         self.menu.start_options()
 
-    def load_map_data(self):
+    def load_map_data(self, data=None):
         import json
-        try:
-            with open('game_data.json', 'r') as infile:
-                data = json.load(infile)
-        except FileNotFoundError:  # Error handling
-            print(f'Could not find file game_data.json')
+        if data is None:
+            try:
+                with open('game_data.json', 'r') as infile:
+                    data = json.load(infile)
+            except FileNotFoundError:  # Error handling
+                print(f'Could not find file game_data.json')
 
         print('Loading map data')
         for i in range(len(data["zone_data"])):
@@ -145,13 +146,14 @@ class Game:
             self.zones[name] = zone
         print('Loading map data completed')
 
-    def load_quest_data(self):
+    def load_quest_data(self, data=None):
         import json
-        try:
-            with open('game_data.json', 'r') as infile:
-                data = json.load(infile)
-        except FileNotFoundError:  # Error handling
-            print(f'Could not find file game_data.json')
+        if data is None:
+            try:
+                with open('game_data.json', 'r') as infile:
+                    data = json.load(infile)
+            except FileNotFoundError:  # Error handling
+                print(f'Could not find file game_data.json')
 
         print('Loading quest data')
         for i in range(len(data["quest_data"])):
@@ -160,13 +162,14 @@ class Game:
             self.quests[name] = quest
         print('Loading quest data completed')
 
-    def load_npc_data(self):
+    def load_npc_data(self, data=None):
         import json
-        try:
-            with open('game_data.json', 'r') as infile:
-                data = json.load(infile)
-        except FileNotFoundError:  # Error handling
-            print(f'Could not find file game_data.json')
+        if data is None:
+            try:
+                with open('game_data.json', 'r') as infile:
+                    data = json.load(infile)
+            except FileNotFoundError:  # Error handling
+                print(f'Could not find file game_data.json')
 
         print('Loading npc data')
         for i in range(len(data["npc_data"])):
@@ -175,21 +178,22 @@ class Game:
             self.npcs[name] = npc
         print('Loading npc data completed')
 
-    def load_settings(self):
+    def load_settings(self, data=None):
         import json
-        try:
-            with open('game_data.json', 'r') as infile:
-                data = json.load(infile)
-        except FileNotFoundError:  # Error handling
-            print(f'Could not find file game_data.json')
+        if data is None:
+            try:
+                with open('game_data.json', 'r') as infile:
+                    data = json.load(infile)
+            except FileNotFoundError:  # Error handling
+                print(f'Could not find file game_data.json')
 
         self._settings = data["settings"]
 
-    def load_game_data(self):
-        self.load_map_data()
-        self.load_quest_data()
-        self.load_npc_data()
-        self.load_settings()
+    def load_game_data(self, data=None):
+        self.load_map_data(data)
+        self.load_quest_data(data)
+        self.load_npc_data(data)
+        self.load_settings(data)
 
     def zone_info(self, zone):
         print(f"\nYou enter the {zone.get_name()}.")
@@ -203,6 +207,77 @@ class Game:
         byte_image = io.BytesIO(byte_array)
         image = Image.open(byte_image)
         image.show()
+
+    def save_game(self):
+        slot = 0
+        while not (slot > 0 and slot < 4):
+            slot = int(input("\nWhich slot would you like to save to (1,2,3)? "))
+        save_data = self.export_game_data()
+        self._zeromq.save_game_data('save', str(slot), save_data)
+
+    def load_from_save(self):
+        slot = 0
+        while not (slot > 0 and slot < 4):
+            slot = int(input("\nWhich save slot would you like to load (1,2,3)? "))
+        data = self._zeromq.load_game_data('load', str(slot))
+        self.load_game_data(data)
+        print(f'Successfully loaded save file {slot}')
+
+    def export_game_data(self):
+        data = {}
+        data["zone_data"] = self.export_map_data()
+        data["quest_data"] = self.export_quest_data()
+        data["npc_data"] = self.export_npc_data()
+        data["settings"] = self.export_settings()
+        return data
+
+    def export_npc_data(self):
+        npc_data = []
+        for npc in self.npcs.values():
+            data = {}
+            data["object_num"] = npc._object_num
+            data["npc_name"] = npc._npc_name
+            data["hostile"] = npc._hostile
+            data["stats"] = npc._stats
+            data["alive"] = npc._alive
+            data["reputation"] = npc._reputation
+            data["dialogue"] = npc._dialogue
+            npc_data.append(data)
+
+        return npc_data
+
+    def export_quest_data(self):
+        quest_data = []
+        for quest in self.quests.values():
+            data = {}
+            data["object_num"] = quest._object_num
+            data["quest_name"] = quest._quest_name
+            data["quest_progress"] = quest._progress
+            data["quest_complete"] = quest._complete
+            data["quest_text"] = quest._quest_text
+            quest_data.append(data)
+
+        return quest_data
+
+    def export_settings(self):
+        return self._settings
+
+    def export_map_data(self):
+        zone_data = []
+        for zone in self.zones.values():
+            data = {}
+            data["object_num"] = zone._object_num
+            data["zone_name"] = zone._zone_name
+            data["zone_lore"] = zone._lore
+            data["north"] = zone.directions["north"]
+            data["south"] = zone.directions["south"]
+            data["east"] = zone.directions["east"]
+            data["west"] = zone.directions["west"]
+            data["npcs"] = zone._npcs
+            data["items"] = zone._items
+            zone_data.append(data)
+
+        return zone_data
 
     def game_menu(self):
         while True:
@@ -222,6 +297,10 @@ class Game:
                 self.adventurer.manage_character()
             elif command == "settings":
                 self.settings_menu()
+            elif command == "save":
+                self.save_game()
+            elif command == "load":
+                self.load_from_save()
             elif command in zone.directions:
                 if zone.directions[command] is None:
                     print("You cannot go that way.")
@@ -360,6 +439,19 @@ class ZeroPipe:
         self.context = zmq.Context()                    # Sets up the environment so that we are able to begin
         self.socket = self.context.socket(zmq.REQ)      # Request socket type
         self.socket.connect("tcp://localhost:5555")
+        self.save_socket = self.context.socket(zmq.REQ)      # Request socket type
+        self.save_socket.connect("tcp://localhost:5556")
+
+    def save_game_data(self, request, slot, data):
+        self.save_socket.send_json({"request": request, "slot": slot, "data": data})
+        response = self.save_socket.recv()
+        if response:
+            print(f'Successfully saved to slot {slot}')
+
+    def load_game_data(self, request, slot):
+        self.save_socket.send_json({"request": request, "slot": slot})
+        load_data = self.save_socket.recv_json()
+        return load_data
 
     def get_image(self, obj_type, name):
         import base64
