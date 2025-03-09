@@ -1,262 +1,385 @@
-# RPGGame.py
+import character            # Import the character microservice module
+import zmq                  # as communication pipe
 
-import time
-import character  # Import the character microservice module
 
-# -------------------------------------------------START MENU--------------------------------------------------------- #
-game_name = "Amazing Adventure Game"
-game_subtext = "Programmed by Leslie Kong\n"
-about_game = ("This game is developed by Leslie Kong as part of his Software Development Project for OSU. "
-              "I hope that you enjoy.\n")
-welcome_message = ("This text based adventure game will take you on an adventure through the Kingdom of Riverstone."
-                   "\nThere is a curse that has befallen the lands and the King has sought any and all adventurers to lift the curse. "
-                   "\nAny adventurer who finds and eliminates the curse is promised the title of Lord and equivalent lands.\n")
-start_instructions = "Type in any of the following commands for more information or start playing."
 error_command = "Sorry I could not understand that command. Please try another command.\n"
 
-start_commands = {
-    "changelog": "To see features added in each version of the game",
-    "about": "Learn more about the developer",
-    "start": "To create your character and begin your adventure",
-    "exit": "Exits the game. Your progress will not be saved"
-}
-
-current_ver = "v2"
-
-changelog = {
-    "v1": ["Added a start menu and start options", "Added zones and traversal", "Added story text"],
-    "v2": ["Added NPC support", "Added item support", "Added quest support"]
-}
-
-help_info = "At any time, you can use the command 'help' to show available global commands.\n"
-
-help_commands = {
-    "help": "Show available global commands",
-    "exit": "Exits the game. Your progress will not be saved",
-    "changename": "Change your character's name",
-    "character": "Manage your character (view status, add experience, level up, save)"
-}
-
-game_intro = ("\nAfter a grueling week of travel, you arrive at the village on the outskirts of Riverstone Castle.\n"
-              "You've heard news of a curse that had spread famine and disease across the kingdom.\n"
-              "King Victor is in distress, his people are dying and if this curse is not cleansed soon \n"
-              "the kingdom may be entirely wiped out. You heard his call, promising the title of Lord and land to \n"
-              "any adventurer that may cure the land of the curse.\n")
-
-# ---------------------------------------------------GAME DATA------------------------------------------------------- #
-
-username = None
-
-quests = [
-    {"quest_val": 0, "name": "Curse of Riverstone", "progress_val": 0, "complete": False, "quest_text": ["placeholder1", "placeholder2", "placeholder3"]},
-    {"quest_val": 1, "name": "Find the Beggar's lost cat", "progress_val": 0, "complete": False, "quest_text": ["placeholder1", "placeholder2", "placeholder3"]},
-    {"quest_val": 2, "name": "Help the family give their son a burial", "progress_val": 0, "complete": False, "quest_text": ["placeholder1", "placeholder2", "placeholder3"]},
-]
-
-npcs = [
-    {"name": "Beggar", "npc_val": 0, "quest_val": 1, "dialogue": ["dplaceholder1", "dplaceholder2", "dplaceholder3"]},
-    {"name": "Town Guard", "npc_val": 1, "quest_val": 0, "dialogue": ["dplaceholder1", "dplaceholder2", "dplaceholder3"]},
-    {"name": "Crying Mother", "npc_val": 2, "quest_val": 2, "dialogue": ["dplaceholder1", "dplaceholder2", "dplaceholder3"]}
-]
-
-zones = {
-    "Mountain Peak": "The top is frigid and windy. You discover a statue of a female, standing pridefully with the sun glistening upon it.",
-    "Path to Mountain Peak": "There are still signs of recent tracks to the peak. You wonder what is at the top.",
-    "Abandoned Village": "The village appears to be abandoned for years. Many smaller villages were abandoned when King Victor declared his lordship.",
-    "Mountain Pass": "The pass is narrow and not well maintained. Still, you persevere through.",
-    "Base of Mountain": "You reach the base of the mountain. Signs of frequent travel are visible.",
-    "Town": "You are immediately hit with a stench of death and decay. There is no joy or hope left in this town.",
-    "West Swamp": "",
-    "Cave Entrance": "You come across an unassuming cave entrance. Perhaps there is a clue here.",
-    "Eastern Forest": "Much of this forest has been deforested to make room for farmland.",
-    "East Swamp": "",
-    "Deep Water": "The water is too deep to wade through. You will need a boat to cross.",
-    "Small Island": "The island has no signs of recent activity. There is not much here.",
-    "Cavern": "The cavern is too dark to see very far, but you know it is vast from the echoes.",
-    "Cave River": "There is a river flowing deeper into the cave. The water is warm to the touch.",
-    "Witch's Shack": "The witch invites you in. The smell is intense, a mix of medicinal, rot, and floral aromas.",
-    "Wolf's Den": "You carefully enter the Wolf's Den. There is a stench of decaying meat.",
-    "Witch's Cellar": "It would be a mistake to enter while the witch is here.",
-    "Western Forest": "The forest is dense. You see an area where wood is harvested.",
-    "Road to Riverstone": "The road has not been maintained in months.",
-    "Guard Tower": "As you approach the guard tower, you notice there are no guards posted.",
-    "Castle Gates": "A large crowd stands in front of the gates, blocked by a line of guards.",
-    "Riverstone": "You won't be able to get past the crowd. You should find another way."
-}
-
-directions = {
-    "Mountain Peak": {"north": None, "east": None, "south": "Path to Mountain Peak", "west": None},
-    "Path to Mountain Peak": {"north": "Mountain Peak", "east": None, "south": "Abandoned Village", "west": None},
-    "Abandoned Village": {"north": "Path to Mountain Peak", "east": "Cave Entrance", "south": "Mountain Pass", "west": None},
-    "Mountain Pass": {"north": "Abandoned Village", "east": None, "south": "Base of Mountain", "west": None},
-    "Base of Mountain": {"north": "Mountain Pass", "east": None, "south": "Town", "west": None},
-    "Town": {"north": "Mountain Pass", "east": "Eastern Forest", "south": "West Swamp", "west": "Western Forest"},
-    "West Swamp": {"north": "Town", "east": "East Swamp", "south": None, "west": "Road to Riverstone"},
-    "Cave Entrance": {"north": None, "east": "Cavern", "south": None, "west": "Abandoned Village"},
-    "Eastern Forest": {"north": None, "east": None, "south": "East Swamp", "west": "Town"},
-    "East Swamp": {"north": "Eastern Forest", "east": "Witch's Shack", "south": "Deep Water", "west": "West Swamp"},
-    "Deep Water": {"north": "East Swamp", "east": None, "south": "Small Island", "west": None},
-    "Small Island": {"north": "Deep Water", "east": None, "south": None, "west": None},
-    "Cavern": {"north": "Cave Entrance", "east": None, "south": "Cave River", "west": "Wolf's Den"},
-    "Cave River": {"north": "Cavern", "east": None, "south": None, "west": None},
-    "Witch's Shack": {"north": None, "east": "Witch's Cellar", "south": None, "west": "East Swamp"},
-    "Wolf's Den": {"north": None, "east": None, "south": None, "west": "Cavern"},
-    "Witch's Cellar": {"north": None, "east": None, "south": None, "west": "Witch's Shack"},
-    "Western Forest": {"north": None, "east": "Town", "south": "Road to Riverstone", "west": None},
-    "Road to Riverstone": {"north": "Western Forest", "east": "West Swamp", "south": None, "west": "Guard Tower"},
-    "Guard Tower": {"north": None, "east": "Road to Riverstone", "south": None, "west": "Castle Gates"},
-    "Castle Gates": {"north": None, "east": "Guard Tower", "south": None, "west": "Riverstone"},
-    "Riverstone": {"north": None, "east": "Castle Gates", "south": None, "west": None}
-}
-
-other_options = {  
-    "Mountain Peak": [[npcs[2]], [], []],
-    "Path to Mountain Peak": [[], [], []],
-    "Abandoned Village": [[], [], []],
-    "Mountain Pass": [[], ["item1", "item2"], []],
-    "Base of Mountain": [[], ["item1", "item2"], []],
-    "Town": [[npcs[0], npcs[1], npcs[2]], [], []],
-    "West Swamp": [[], [], []],
-    "Cave Entrance": [[], [], []],
-    "Eastern Forest": [[], [], []],
-    "East Swamp": [[], [], []],
-    "Deep Water": [[], [], []],
-    "Small Island": [[], [], []],
-    "Cavern": [[], [], []],
-    "Cave River": [[], [], []],
-    "Witch's Shack": [[], [], []],
-    "Wolf's Den": [[], [], []],
-    "Witch's Cellar": [[], [], []],
-    "Western Forest": [[], [], []],
-    "Road to Riverstone": [[], [], []],
-    "Guard Tower": [[], [], []],
-    "Castle Gates": [[], [], []],
-    "Riverstone": [[], [], []]
-}
-
-# ------------------------------------------------START FUNCTIONS----------------------------------------------------- #
-def exit_game():
-    while True:
-        check = input("Are you sure you want to exit the game? Please remember to save your character manually. (Y/N) ")
-        if check.lower() == "n":
-            return
-        if check.lower() == "y":
-            print("Thank you for playing! Game will exit in 3 seconds.")
-            time.sleep(3)
-            exit()
-        else:
-            print("Sorry I could not understand that command. Please try another command.")
-
-def change_log():
-    print("Your current version is", current_ver)
-    while True:
-        version = input("Type in the version you would like to see or 'back' to go back (v1, v2, etc): ")
-        if version == "back":
-            return
-        if version in changelog:
-            for line in changelog[version]:
-                print(line)
-            print("\n")
-        else:
-            comm_err()
-
-def about():
-    print(about_game)
 
 def comm_err():
     print(error_command)
 
-def start_menu():
-    print(game_name)
-    print(welcome_message)
-    print(start_instructions)
-    for option, desc in start_commands.items():
-        print(f"{option}: {desc}")
-    print("\n")
+
+def exit_game():
     while True:
-        command = input("Please enter a command: ")
-        if command.lower() == "exit":
-            exit_game()
-        elif command.lower() == "changelog":
-            change_log()
-        elif command.lower() == "about":
-            about()
-        elif command.lower() == "start":
+        check = input("Are you sure you want to exit the game? "
+                      "Please remember to save your character manually. (Y/N) ").lower().strip()
+        if check == "n":
             return
+        if check == "y":
+            print("Thank you for playing!")
+            exit()
         else:
-            comm_err()
+            print("Sorry I could not understand that command. Please try another command.")
 
-# ------------------------------------------------Character Management Integration----------------------------------------------------- #
-def initialize_character():
-    """
-    Replaces the old username creation.
-    When starting the game, prompt the user to either create a new character or choose an existing one.
-    """
-    character.main_menu()  # Calls the character module's main_menu for selection/creation
 
-def manage_character():
-    """
-    Calls the character management menu from character.py.
-    """
-    print("\n=== Character Management ===")
-    character.character_main_menu()
+class Help:
+    def __init__(self):
+        self._message = "At any time, you can use the command 'help' to show available global commands.\n"
+        self._commands = {
+            "help": "Show available global commands",
+            "exit": "Exits the game. Your progress will not be saved",
+            "character": "Manage your character (change name, view status, add experience, level up, save)"
+        }
 
-# ------------------------------------------------GAME FUNCTIONS----------------------------------------------------- #
-def change_name():
-    """
-    Changes the character's name using the character module's update function.
-    """
-    character.update_character_name()
+    def message(self):
+        print(self._message)
 
-def help():
-    for option, desc in help_commands.items():
-        print(f"{option}: {desc}")
-    print("\n")
-
-def introduction():
-    print(game_intro)
-    print(help_info)
-
-def start_game():
-    """
-    Starts the character in the town and allows user to traverse the map.
-    """
-    location = "Town"
-    while True:
-        print(f"\nYou enter the {location}.")
-        print(zones[location])
-        for option in directions[location]:
-            if directions[location][option] is not None:
-                print(option, ":", directions[location][option])
-        if other_options[location][0]:  # Prints names of all the NPCs in the zone
-            print("npc :", ", ".join([other_options[location][0][i]['name'] for i in range(len(other_options[location][0]))]))
-        if other_options[location][1]:  # Prints names of all the items in the zone
-            print("items :", ", ".join([other_options[location][1][i] for i in range(len(other_options[location][1]))]))
-        command = input("\nWhat would you like to do? ")
+    def show_commands(self):
+        for option, desc in self._commands.items():
+            print(f"{option}: {desc}")
         print("\n")
-        if command.lower() == "exit":
-            exit_game()
-        elif command.lower() == "changename":
-            change_name()
-        elif command.lower() == "character":
-            manage_character()
-        elif command.lower() == "help":
-            help()
-        elif command.lower() in directions[location]:
-            if directions[location][command] is None:
-                print("You cannot go that way.")
+
+
+class StartMenu:
+    def __init__(self):
+        self.changelog = {
+            "v1": ["Added a start menu and start options", "Added zones and traversal", "Added story text"],
+            "v2": ["Added NPC support", "Added item support", "Added quest support", "Added zone images display",
+                   "Added setting menu", "Refactored code to ease development"]
+        }
+        self.game_name = "Amazing Adventure Game"
+        self.about = ("This game is developed by Leslie Kong as part of his Software Development Project for OSU. I "
+                      "hope that you enjoy.\n")
+        self.welcome = ("This text based adventure game will take you on an adventure through the "
+                        "Kingdom of Riverstone. \nThere is a curse that has befallen the lands and "
+                        "the King has sought any and all adventurers to lift the curse. \nAny adventurer who "
+                        "finds and eliminates the curse is promised the title of Lord and equivalent lands.\n")
+        self.start_instructions = "Type in any of the following commands for more information or start playing."
+        self.current_version = "v2"
+        self.commands = {
+            "changelog": "To see features added in each version of the game",
+            "about": "Learn more about the developer",
+            "start": "To create your character and begin your adventure",
+            "exit": "Exits the game. Your progress will not be saved"
+        }
+        self.help = "At any time, you can use the command 'help' to show available global commands.\n"
+        self.help_commands = {
+            "help": "Show available global commands",
+            "exit": "Exits the game. Your progress will not be saved",
+            "character": "Manage your character (view status, add experience, level up, save)",
+            "settings": "Change game settings"
+        }
+
+    def start_options(self):
+        print(self.game_name)
+        print(self.welcome)
+        print(self.start_instructions)
+        while True:
+            for option, desc in self.commands.items():
+                print(f"{option}: {desc}")
+            print("\n")
+            command = input("Please enter a command: ").lower().strip()
+            if command == "exit":
+                exit_game()
+            elif command == "changelog":
+                self.get_changelog()
+            elif command == "about":
+                self.get_about()
+            elif command == "start":
+                return
             else:
-                location = directions[location][command]
-        elif any(other_options[location][0][i]['name'].lower() == command.lower() for i in range(len(other_options[location][0]))):
-            talk(command.lower())
+                comm_err()
+
+    def get_about(self):
+        print(self.about)
+
+    def get_changelog(self):
+        print("Your current version is", self.current_version)
+        while True:
+            version = input("Type in the version or 'back' (v1, v2, etc): ").lower().strip()
+            if version == "back":
+                return
+            if version in self.changelog:
+                for line in self.changelog[version]:
+                    print(line)
+                print("\n")
+            else:
+                comm_err()
+
+
+class Game:
+    def __init__(self):
+        self.introduction = (
+            "\nAfter a grueling week of travel, you arrive at the village on the outskirts of Riverstone Castle.\n"
+            "You've heard news of a curse that had spread famine and disease across the kingdom.\n"
+            "King Victor is in distress, his people are dying and if this curse is not cleansed soon \n"
+            "the kingdom may be entirely wiped out. You heard his call, promising the title of Lord and land to \n"
+            "any adventurer that may cure the land of the curse.\n")
+        self.zones = {}
+        self.quests = {}
+        self.npcs = {}
+        self._settings = {}
+        self.menu = StartMenu()
+        self.adventurer = Player()
+        self._help = Help()
+        self._zeromq = ZeroPipe()
+
+    def start_menu(self):
+        """
+        Displays start menu
+        """
+        self.menu.start_options()
+
+    def load_map_data(self):
+        import json
+        try:
+            with open('game_data.json', 'r') as infile:
+                data = json.load(infile)
+        except FileNotFoundError:  # Error handling
+            print(f'Could not find file game_data.json')
+
+        print('Loading map data')
+        for i in range(len(data["zone_data"])):
+            zone = Zone(data["zone_data"][i])
+            name = data["zone_data"][i]["zone_name"]
+            self.zones[name] = zone
+        print('Loading map data completed')
+
+    def load_quest_data(self):
+        import json
+        try:
+            with open('game_data.json', 'r') as infile:
+                data = json.load(infile)
+        except FileNotFoundError:  # Error handling
+            print(f'Could not find file game_data.json')
+
+        print('Loading quest data')
+        for i in range(len(data["quest_data"])):
+            quest = Quest(data["quest_data"][i])
+            name = data["quest_data"][i]["quest_name"]
+            self.quests[name] = quest
+        print('Loading quest data completed')
+
+    def load_npc_data(self):
+        import json
+        try:
+            with open('game_data.json', 'r') as infile:
+                data = json.load(infile)
+        except FileNotFoundError:  # Error handling
+            print(f'Could not find file game_data.json')
+
+        print('Loading npc data')
+        for i in range(len(data["npc_data"])):
+            npc = NPC(data["npc_data"][i])
+            name = data["npc_data"][i]["npc_name"]
+            self.npcs[name] = npc
+        print('Loading npc data completed')
+
+    def load_settings(self):
+        import json
+        try:
+            with open('game_data.json', 'r') as infile:
+                data = json.load(infile)
+        except FileNotFoundError:  # Error handling
+            print(f'Could not find file game_data.json')
+
+        self._settings = data["settings"]
+
+    def load_game_data(self):
+        self.load_map_data()
+        self.load_quest_data()
+        self.load_npc_data()
+        self.load_settings()
+
+    def zone_info(self, zone):
+        print(f"\nYou enter the {zone.get_name()}.")
+        if zone.get_lore():
+            print(zone.get_lore())
+        zone.get_directions()
+
+    def display_image(self, byte_array):
+        from PIL import Image  # To display images
+        import io
+        byte_image = io.BytesIO(byte_array)
+        image = Image.open(byte_image)
+        image.show()
+
+    def game_menu(self):
+        while True:
+            self._help.message()
+            zone = self.zones[self.adventurer.location]
+            self.zone_info(zone)
+            if self._settings["image_display"]:
+                self.display_image(self._zeromq.get_image('zone', zone.get_name()))
+
+            command = input("\nWhat would you like to do? ").lower().strip()
+            print("\n")
+            if command == "exit":
+                exit_game()
+            elif command == "help":
+                self._help.show_commands()
+            elif command == "character":
+                self.adventurer.manage_character()
+            elif command == "settings":
+                self.settings_menu()
+            elif command in zone.directions:
+                if zone.directions[command] is None:
+                    print("You cannot go that way.")
+                else:
+                    self.adventurer.move(zone.directions[command])
+            else:
+                comm_err()
+
+    def settings_menu(self):
+        """
+        Menu to change settings
+        """
+        while True:
+            for i, setting in enumerate(self._settings, 1):
+                print(f"{i}. {setting}")
+
+            selection = input("\nEnter the setting you would like to change or 'back': ").lower().strip()
+            selection = "_".join(selection.split())
+            if selection == "back":
+                return
+            if selection in self._settings:
+                if self._settings[selection]:
+                    print(f'{selection} is currently toggled on. Do you want to toggle this setting off? ', end="")
+                else:
+                    print(f'{selection} is currently toggled off. Do you want to toggle this setting on? ', end="")
+                confirmation = input()
+                if confirmation == "y":
+                    self.toggle_setting(selection)
+                    continue
+                if confirmation == "n":
+                    continue
+                else:
+                    comm_err()
+            else:
+                print("Sorry, I could not find that setting")
+
+    def toggle_setting(self, setting):
+        """
+        Toggles a setting on/off
+        """
+        if self._settings[setting]:
+            self._settings[setting] = False
+            print(f'{setting} has been toggled off.')
         else:
-            comm_err()
+            self._settings[setting] = True
+            print(f'{setting} has been toggled on.')
 
-def talk(npc_name):
-    print(f'You talk with the {npc_name}')
 
-# ------------------------------------------------MAIN EXECUTION----------------------------------------------------- #
-start_menu()
-initialize_character()  # Prompt to create or choose a character
-introduction()
-start_game()
+class Zone:
+    def __init__(self, data):
+        self._object_num = data["object_num"]
+        self._zone_name = data["zone_name"]
+        self._lore = data["zone_lore"]
+        self.directions = {"north": data["north"],
+                           "south": data["south"],
+                           "east": data["east"],
+                           "west": data["west"]}
+        self._npcs = data["npcs"]
+        self._items = data["items"]
+
+    def get_npcs(self):
+        return self._npcs
+
+    def get_items(self):
+        return self._items
+
+    def get_directions(self):
+        for key, val in self.directions.items():
+            if val is not None:
+                print(f'{key}: {val}')
+
+    def get_lore(self):
+        return self._lore
+
+    def get_name(self):
+        return self._zone_name
+
+
+class Player:
+    def __init__(self):
+        self.name = "Player"
+        self.score = 0
+        self.location = "Town"
+
+    def change_name(self, name):
+        self.name = name
+
+    def move(self, zone_name):
+        self.location = zone_name
+
+    def change_score(self, points):
+        self.score += points
+
+    def initialize_character(self):
+        """
+        Replaces the old username creation.
+        When starting the game, prompt the user to either create a new character or choose an existing one.
+        """
+        character.main_menu()  # Calls the character module's main_menu for selection/creation
+        self.change_name(character.get_character_name())
+
+    def manage_character(self):
+        """
+        Calls the character management menu from character.py.
+        """
+        print("\n=== Character Management ===")
+        character.character_main_menu()
+        self.change_name(character.get_character_name())
+
+
+class Quest:
+    def __init__(self, data):
+        self._object_num = data["object_num"]
+        self._quest_name = data["quest_name"]
+        self._progress = data["quest_progress"]
+        self._complete = data["quest_complete"]
+        self._quest_text = data["quest_text"]
+
+
+class NPC:
+    def __init__(self, data):
+        self._object_num = data["object_num"]
+        self._npc_name = data["npc_name"]
+        self._hostile = data["hostile"]
+        self._stats = data["stats"]
+        self._alive = data["alive"]
+        self._reputation = data["reputation"]
+        self._dialogue = data["dialogue"]
+
+
+class ZeroPipe:
+    """
+    Initializes connection for microservice communication
+    """
+    def __init__(self):
+        self.context = zmq.Context()                    # Sets up the environment so that we are able to begin
+        self.socket = self.context.socket(zmq.REQ)      # Request socket type
+        self.socket.connect("tcp://localhost:5555")
+
+    def get_image(self, obj_type, name):
+        import base64
+        request = {"type": obj_type, "name": name}
+        self.socket.send_json(request)
+        byte_image = self.socket.recv()
+        byte_array = bytearray(base64.b64decode(byte_image))
+        return byte_array
+
+    def end_connection(self):
+        """
+        Terminates the connection
+        """
+        self.context.destroy()
+        self.socket.close()
+
+
+if __name__ == "__main__":
+    adventure = Game()
+    adventure.start_menu()
+    adventure.load_game_data()
+    adventure.adventurer.initialize_character()
+    adventure.game_menu()

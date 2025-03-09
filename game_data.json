@@ -1,0 +1,292 @@
+
+{
+    "zone_data": [
+        {
+            "object_num": 10000,
+            "zone_name": "Mountain Peak",
+            "zone_lore": "The top is frigid and windy. You discover a statue of a female, standing pridefully with the sun glistening upon it.",
+            "north": null,
+            "east": null,
+            "south": "Path to Mountain Peak",
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10001,
+            "zone_name": "Path to Mountain Peak",
+            "zone_lore": "There are still signs of recent tracks to the peak. You wonder what is at the top.",
+            "north": "Mountain Peak",
+            "east": null,
+            "south": "Abandoned Village",
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10002,
+            "zone_name": "Abandoned Village",
+            "zone_lore": "The village appears to be abandoned for years. Many smaller villages were abandoned when King Victor declared his lordship.",
+            "north": "Path to Mountain Peak",
+            "east": "Cave Entrance",
+            "south": "Mountain Pass",
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10003,
+            "zone_name": "Mountain Pass",
+            "zone_lore": "The pass is narrow and not well maintained. Still, you persevere through.",
+            "north": "Abandoned Village",
+            "east": null,
+            "south": "Base of Mountain",
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10004,
+            "zone_name": "Base of Mountain",
+            "zone_lore": "You reach the base of the mountain. Signs of frequent travel are visible.",
+            "north": "Mountain Pass",
+            "east": null,
+            "south": "Town",
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10005,
+            "zone_name": "Town",
+            "zone_lore": "You are immediately hit with a stench of death and decay. There is no joy or hope left in this village.",
+            "north": "Base of Mountain",
+            "east": "Eastern Forest",
+            "south": "Western Swamp",
+            "west": "Western Forest",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10006,
+            "zone_name": "Western Swamp",
+            "zone_lore": null,
+            "north": "Town",
+            "east": "Eastern Swamp",
+            "south": null,
+            "west": "Road to Riverstone",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10007,
+            "zone_name": "Cave Entrance",
+            "zone_lore": "You come across an unassuming cave entrance. Perhaps there is a clue here.",
+            "north": null,
+            "east": "Cavern",
+            "south": null,
+            "west": "Abandoned Village",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10008,
+            "zone_name": "Eastern Forest",
+            "zone_lore": "Much of this forest has been deforested to make room for farmland.",
+            "north": null,
+            "east": null,
+            "south": "Eastern Swamp",
+            "west": "Town",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10009,
+            "zone_name": "Eastern Swamp",
+            "zone_lore": null,
+            "north": "Eastern Forest",
+            "east": "Witch's Shack",
+            "south": "Deep Water",
+            "west": "Western Swamp",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10010,
+            "zone_name": "Deep Water",
+            "zone_lore": "The water is too deep to wade through. You will need a boat to cross.",
+            "north": "Eastern Swamp",
+            "east": null,
+            "south": "Small Island",
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10011,
+            "zone_name": "Small Island",
+            "zone_lore": "The island has no signs of recent activity. There is not much here.",
+            "north": "Deep Water",
+            "east": null,
+            "south": null,
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10012,
+            "zone_name": "Cavern",
+            "zone_lore": "The cavern is too dark to see very far, but you know it is vast from the echoes.",
+            "north": "Cave Entrance",
+            "east": null,
+            "south": "Cave River",
+            "west": "Wolf's Den",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 100013,
+            "zone_name": "Cave River",
+            "zone_lore": "There is a river flowing deeper into the cave. The water is warm to the touch.",
+            "north": "Cavern",
+            "east": null,
+            "south": null,
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 100014,
+            "zone_name": "Witch's Shack",
+            "zone_lore": "The witch invites you in. The smell is intense, a mix of medicinal, rot, and floral aromas.",
+            "north": null,
+            "east": null,
+            "south": null,
+            "west": "Eastern Swamp",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10015,
+            "zone_name": "Wolf's Den",
+            "zone_lore": "You carefully enter the Wolf's Den. There is a stench of decaying meat.",
+            "north": null,
+            "east": null,
+            "south": null,
+            "west": "Cavern",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10016,
+            "zone_name": "Witch's Cellar",
+            "zone_lore": "It would be a mistake to enter while the witch is here.",
+            "north": null,
+            "east": null,
+            "south": null,
+            "west": "Witch's Shack",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10017,
+            "zone_name": "Western Forest",
+            "zone_lore": "The forest is dense. You see an area where wood is harvested.",
+            "north": null,
+            "east": "Town",
+            "south": "Road to Riverstone",
+            "west": null,
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10018,
+            "zone_name": "Road to Riverstone",
+            "zone_lore": "The road has not been maintained in months.",
+            "north": "Western Forest",
+            "east": "Western Swamp",
+            "south": null,
+            "west": "Guard Tower",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10019,
+            "zone_name": "Guard Tower",
+            "zone_lore": "As you approach the guard tower, you notice there are no guards posted.",
+            "north": null,
+            "east": "Road to Riverstone",
+            "south": null,
+            "west": "Castle Gates",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10020,
+            "zone_name": "Castle Gates",
+            "zone_lore": "A large crowd stands in front of the gates, blocked by a line of guards.",
+            "north": null,
+            "east": "Guard Tower",
+            "south": null,
+            "west": "Riverstone",
+            "npcs": null,
+            "items": null
+        },
+        {
+            "object_num": 10021,
+            "zone_name": "Riverstone",
+            "zone_lore": "You won't be able to get past the crowd. You should find another way.",
+            "north": null,
+            "east": "Castle Gates",
+            "south": null,
+            "west": null,
+            "npcs": null,
+            "items": null
+        }
+    ],
+    "quest_data": [{
+        "quest_name": "placeholder1",
+        "object_num": 20000,
+        "quest_progress": 0,
+        "quest_complete": false,
+        "quest_text": null
+    },
+    {
+        "quest_name": "placeholder2",
+        "object_num": 20001,
+        "quest_progress": 0,
+        "quest_complete": true,
+        "quest_text": null
+    }],
+    "npc_data": [{
+        "object_num": 30000,
+        "npc_name": "Beggar",
+        "hostile": false,
+        "stats": null,
+        "alive": true,
+        "reputation": 0,
+        "dialogue": null
+    },
+    {
+        "object_num": 30001,
+        "npc_name": "Mayor",
+        "hostile": false,
+        "stats": null,
+        "alive": true,
+        "reputation": 1,
+        "dialogue": null
+    },
+    {
+        "object_num": 30002,
+        "npc_name": "Witch",
+        "hostile": false,
+        "stats": null,
+        "alive": true,
+        "reputation": 0,
+        "dialogue": null
+    }],
+    "settings": {
+        "image_display": false
+    }
+
+}

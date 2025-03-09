@@ -301,6 +301,9 @@ def main_menu():
     set_active_character(active_name)
     print(f"Active character set to: {active_name}")
 
+def get_character_name():
+    return _active_character_name
+
 # Only call main_menu() if this module is run directly (for testing purposes)
 if __name__ == "__main__":
     main_menu()
