@@ -286,7 +286,7 @@
         "dialogue": null
     }],
     "settings": {
-        "image_display": false
+        "image_display": true
     }
 
 }

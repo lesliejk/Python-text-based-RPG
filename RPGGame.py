@@ -210,38 +210,29 @@ class Game:
 
     def save_game(self):
         slot = 0
-        while not (slot > 0 and slot < 4):
+        while not (0 < slot < 4):
             slot = int(input("\nWhich slot would you like to save to (1,2,3)? "))
         save_data = self.export_game_data()
         self._zeromq.save_game_data('save', str(slot), save_data)
 
     def load_from_save(self):
         slot = 0
-        while not (slot > 0 and slot < 4):
+        while not (0 < slot < 4):
             slot = int(input("\nWhich save slot would you like to load (1,2,3)? "))
         data = self._zeromq.load_game_data('load', str(slot))
         self.load_game_data(data)
         print(f'Successfully loaded save file {slot}')
 
     def export_game_data(self):
-        data = {}
-        data["zone_data"] = self.export_map_data()
-        data["quest_data"] = self.export_quest_data()
-        data["npc_data"] = self.export_npc_data()
-        data["settings"] = self.export_settings()
+        data = {"zone_data": self.export_map_data(), "quest_data": self.export_quest_data(),
+                "npc_data": self.export_npc_data(), "settings": self.export_settings()}
         return data
 
     def export_npc_data(self):
         npc_data = []
         for npc in self.npcs.values():
-            data = {}
-            data["object_num"] = npc._object_num
-            data["npc_name"] = npc._npc_name
-            data["hostile"] = npc._hostile
-            data["stats"] = npc._stats
-            data["alive"] = npc._alive
-            data["reputation"] = npc._reputation
-            data["dialogue"] = npc._dialogue
+            data = {"object_num": npc._object_num, "npc_name": npc._npc_name, "hostile": npc._hostile,
+                    "stats": npc._stats, "alive": npc._alive, "reputation": npc._reputation, "dialogue": npc._dialogue}
             npc_data.append(data)
 
         return npc_data
@@ -249,12 +240,8 @@ class Game:
     def export_quest_data(self):
         quest_data = []
         for quest in self.quests.values():
-            data = {}
-            data["object_num"] = quest._object_num
-            data["quest_name"] = quest._quest_name
-            data["quest_progress"] = quest._progress
-            data["quest_complete"] = quest._complete
-            data["quest_text"] = quest._quest_text
+            data = {"object_num": quest._object_num, "quest_name": quest._quest_name, "quest_progress": quest._progress,
+                    "quest_complete": quest._complete, "quest_text": quest._quest_text}
             quest_data.append(data)
 
         return quest_data
@@ -265,16 +252,10 @@ class Game:
     def export_map_data(self):
         zone_data = []
         for zone in self.zones.values():
-            data = {}
-            data["object_num"] = zone._object_num
-            data["zone_name"] = zone._zone_name
-            data["zone_lore"] = zone._lore
-            data["north"] = zone.directions["north"]
-            data["south"] = zone.directions["south"]
-            data["east"] = zone.directions["east"]
-            data["west"] = zone.directions["west"]
-            data["npcs"] = zone._npcs
-            data["items"] = zone._items
+            data = {"object_num": zone._object_num, "zone_name": zone._zone_name, "zone_lore": zone._lore,
+                    "north": zone.directions["north"], "south": zone.directions["south"],
+                    "east": zone.directions["east"], "west": zone.directions["west"], "npcs": zone._npcs,
+                    "items": zone._items}
             zone_data.append(data)
 
         return zone_data
