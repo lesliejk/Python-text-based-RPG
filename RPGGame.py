@@ -45,7 +45,7 @@ class StartMenu:
         self.changelog = {
             "v1": ["Added a start menu and start options", "Added zones and traversal", "Added story text"],
             "v2": ["Added NPC support", "Added item support", "Added quest support", "Added zone images display",
-                   "Added setting menu", "Added save and load feature"]
+                   "Added setting menu", "Added save and load feature", "Added zone themes"]
         }
         self.game_name = "Amazing Adventure Game"
         self.about = ("This game is developed by Leslie Kong as part of his Software Development Project for OSU. I "
@@ -67,7 +67,8 @@ class StartMenu:
             "help": "Show available global commands",
             "exit": "Exits the game. Your progress will not be saved",
             "character": "Manage your character (view status, add experience, level up, save)",
-            "settings": "Change game settings"
+            "settings": "Change game settings",
+            "mute": "Stops playing current audio track"
         }
 
     def start_options(self):
@@ -208,7 +209,29 @@ class Game:
         image = Image.open(byte_image)
         image.show()
 
+    def play_theme(self, theme_bytes):
+        """
+        Plays audio file from bytes
+
+        """
+        import pygame
+        import io
+        pygame.mixer.init()
+        pygame.mixer.stop()
+        theme = io.BytesIO(theme_bytes)
+        pygame.mixer.Sound(theme).play()
+
+    def stop_sounds(self):
+        """
+        Stops playing current audio file
+        """
+        import pygame
+        pygame.mixer.stop()
+
     def save_game(self):
+        """
+        Saves current game state to a save slot
+        """
         slot = 0
         while not (0 < slot < 4):
             slot = int(input("\nWhich slot would you like to save to (1,2,3)? "))
@@ -216,6 +239,9 @@ class Game:
         self._zeromq.save_game_data('save', str(slot), save_data)
 
     def load_from_save(self):
+        """
+        Loads game from save slot
+        """
         slot = 0
         while not (0 < slot < 4):
             slot = int(input("\nWhich save slot would you like to load (1,2,3)? "))
@@ -255,7 +281,7 @@ class Game:
             data = {"object_num": zone._object_num, "zone_name": zone._zone_name, "zone_lore": zone._lore,
                     "north": zone.directions["north"], "south": zone.directions["south"],
                     "east": zone.directions["east"], "west": zone.directions["west"], "npcs": zone._npcs,
-                    "items": zone._items}
+                    "items": zone._items, "theme": zone._theme}
             zone_data.append(data)
 
         return zone_data
@@ -267,6 +293,8 @@ class Game:
             self.zone_info(zone)
             if self._settings["image_display"]:
                 self.display_image(self._zeromq.get_image('zone', zone.get_name()))
+            if self._settings["theme_sounds"] and zone._theme:
+                self.play_theme(self._zeromq.get_theme(zone._theme))
 
             command = input("\nWhat would you like to do? ").lower().strip()
             print("\n")
@@ -282,6 +310,8 @@ class Game:
                 self.save_game()
             elif command == "load":
                 self.load_from_save()
+            elif command == "mute":
+                self.stop_sounds()
             elif command in zone.directions:
                 if zone.directions[command] is None:
                     print("You cannot go that way.")
@@ -341,6 +371,7 @@ class Zone:
                            "west": data["west"]}
         self._npcs = data["npcs"]
         self._items = data["items"]
+        self._theme = data["theme"]
 
     def get_npcs(self):
         return self._npcs
@@ -417,11 +448,21 @@ class ZeroPipe:
     Initializes connection for microservice communication
     """
     def __init__(self):
-        self.context = zmq.Context()                    # Sets up the environment so that we are able to begin
-        self.socket = self.context.socket(zmq.REQ)      # Request socket type
+        self.context = zmq.Context()                        # Sets up the environment so that we are able to begin
+        self.socket = self.context.socket(zmq.REQ)          # Request socket type
         self.socket.connect("tcp://localhost:5555")
-        self.save_socket = self.context.socket(zmq.REQ)      # Request socket type
+        self.save_socket = self.context.socket(zmq.REQ)
         self.save_socket.connect("tcp://localhost:5556")
+        self.sound_socket = self.context.socket(zmq.REQ)
+        self.sound_socket.connect("tcp://localhost:5557")
+
+    def get_theme(self, theme):
+        import base64
+        request = {"theme": theme}
+        self.sound_socket.send_json(request)
+        byte_sound = self.sound_socket.recv()
+        byte_array = bytearray(base64.b64decode(byte_sound))
+        return byte_array
 
     def save_game_data(self, request, slot, data):
         self.save_socket.send_json({"request": request, "slot": slot, "data": data})
@@ -440,6 +481,14 @@ class ZeroPipe:
         self.socket.send_json(request)
         byte_image = self.socket.recv()
         byte_array = bytearray(base64.b64decode(byte_image))
+        return byte_array
+
+    def get_sound(self, theme):
+        import base64
+        request = {"theme": theme}
+        self.socket.send_json(request)
+        byte_sound = self.socket.recv()
+        byte_array = bytearray(base64.b64decode(byte_sound))
         return byte_array
 
     def end_connection(self):

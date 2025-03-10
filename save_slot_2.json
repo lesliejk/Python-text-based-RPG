@@ -9,7 +9,8 @@
             "east": null,
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "peak"
         },
         {
             "object_num": 10001,
@@ -20,7 +21,8 @@
             "east": null,
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "strong"
         },
         {
             "object_num": 10002,
@@ -31,7 +33,8 @@
             "east": "Cave Entrance",
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "mystery"
         },
         {
             "object_num": 10003,
@@ -42,7 +45,8 @@
             "east": null,
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "main"
         },
         {
             "object_num": 10004,
@@ -53,7 +57,8 @@
             "east": null,
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "epic"
         },
         {
             "object_num": 10005,
@@ -64,7 +69,8 @@
             "east": "Eastern Forest",
             "west": "Western Forest",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "sorrow"
         },
         {
             "object_num": 10006,
@@ -75,7 +81,8 @@
             "east": "Eastern Swamp",
             "west": "Road to Riverstone",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "sorrow"
         },
         {
             "object_num": 10007,
@@ -86,7 +93,8 @@
             "east": "Cavern",
             "west": "Abandoned Village",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "calm"
         },
         {
             "object_num": 10008,
@@ -97,7 +105,8 @@
             "east": null,
             "west": "Town",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "dawn"
         },
         {
             "object_num": 10009,
@@ -108,7 +117,8 @@
             "east": "Witch's Shack",
             "west": "Western Swamp",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "mystic"
         },
         {
             "object_num": 10010,
@@ -119,7 +129,8 @@
             "east": null,
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "main"
         },
         {
             "object_num": 10011,
@@ -130,18 +141,20 @@
             "east": null,
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "main"
         },
         {
             "object_num": 10012,
             "zone_name": "Cavern",
             "zone_lore": "The cavern is too dark to see very far, but you know it is vast from the echoes.",
-            "north": "Cave Entrance",
+            "north": null,
             "south": "Cave River",
-            "east": null,
-            "west": "Wolf's Den",
+            "east": "Wolf's Den",
+            "west": "Cave Entrance",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "spooky"
         },
         {
             "object_num": 100013,
@@ -152,7 +165,8 @@
             "east": null,
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "relaxing"
         },
         {
             "object_num": 100014,
@@ -160,10 +174,11 @@
             "zone_lore": "The witch invites you in. The smell is intense, a mix of medicinal, rot, and floral aromas.",
             "north": null,
             "south": null,
-            "east": null,
+            "east": "Witch's Cellar",
             "west": "Eastern Swamp",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "fairy"
         },
         {
             "object_num": 10015,
@@ -174,7 +189,8 @@
             "east": null,
             "west": "Cavern",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "strong"
         },
         {
             "object_num": 10016,
@@ -185,7 +201,8 @@
             "east": null,
             "west": "Witch's Shack",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "nocturnal"
         },
         {
             "object_num": 10017,
@@ -196,7 +213,8 @@
             "east": "Town",
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "ethereal"
         },
         {
             "object_num": 10018,
@@ -207,7 +225,8 @@
             "east": "Western Swamp",
             "west": "Guard Tower",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "playful"
         },
         {
             "object_num": 10019,
@@ -218,7 +237,8 @@
             "east": "Road to Riverstone",
             "west": "Castle Gates",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "peaceful"
         },
         {
             "object_num": 10020,
@@ -229,7 +249,8 @@
             "east": "Guard Tower",
             "west": "Riverstone",
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "medieval"
         },
         {
             "object_num": 10021,
@@ -240,7 +261,8 @@
             "east": "Castle Gates",
             "west": null,
             "npcs": null,
-            "items": null
+            "items": null,
+            "theme": "medieval"
         }
     ],
     "quest_data": [
@@ -289,6 +311,7 @@
         }
     ],
     "settings": {
-        "image_display": false
+        "image_display": true,
+        "theme_sounds": true
     }
 }
