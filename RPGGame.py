@@ -1,6 +1,7 @@
-import character            # Import the character microservice module
 import zmq                  # as communication pipe
-
+import json
+import os
+import time
 
 error_command = "Sorry I could not understand that command. Please try another command.\n"
 
@@ -132,7 +133,6 @@ class Game:
         self.menu.start_options()
 
     def load_map_data(self, data=None):
-        import json
         if data is None:
             try:
                 with open('game_data.json', 'r') as infile:
@@ -148,7 +148,6 @@ class Game:
         print('Loading map data completed')
 
     def load_quest_data(self, data=None):
-        import json
         if data is None:
             try:
                 with open('game_data.json', 'r') as infile:
@@ -164,7 +163,6 @@ class Game:
         print('Loading quest data completed')
 
     def load_npc_data(self, data=None):
-        import json
         if data is None:
             try:
                 with open('game_data.json', 'r') as infile:
@@ -180,7 +178,6 @@ class Game:
         print('Loading npc data completed')
 
     def load_settings(self, data=None):
-        import json
         if data is None:
             try:
                 with open('game_data.json', 'r') as infile:
@@ -303,7 +300,7 @@ class Game:
             elif command == "help":
                 self._help.show_commands()
             elif command == "character":
-                self.adventurer.manage_character()
+                manage_character()
             elif command == "settings":
                 self.settings_menu()
             elif command == "save":
@@ -406,22 +403,6 @@ class Player:
     def change_score(self, points):
         self.score += points
 
-    def initialize_character(self):
-        """
-        Replaces the old username creation.
-        When starting the game, prompt the user to either create a new character or choose an existing one.
-        """
-        character.main_menu()  # Calls the character module's main_menu for selection/creation
-        self.change_name(character.get_character_name())
-
-    def manage_character(self):
-        """
-        Calls the character management menu from character.py.
-        """
-        print("\n=== Character Management ===")
-        character.character_main_menu()
-        self.change_name(character.get_character_name())
-
 
 class Quest:
     def __init__(self, data):
@@ -483,14 +464,6 @@ class ZeroPipe:
         byte_array = bytearray(base64.b64decode(byte_image))
         return byte_array
 
-    def get_sound(self, theme):
-        import base64
-        request = {"theme": theme}
-        self.socket.send_json(request)
-        byte_sound = self.socket.recv()
-        byte_array = bytearray(base64.b64decode(byte_sound))
-        return byte_array
-
     def end_connection(self):
         """
         Terminates the connection
@@ -498,10 +471,154 @@ class ZeroPipe:
         self.context.destroy()
         self.socket.close()
 
+# -------------------------------------------------CHARACTER--------------------------------------------------------- #
+
+def write_request(request):
+    """Write a request to request.txt."""
+    with open("request.txt", "w") as f:
+        f.write(request)
+
+def read_response():
+    """Read the response from response.txt."""
+    try:
+        with open("response.txt", "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return None
+
+def clear_response():
+    """Remove response.txt after reading."""
+    try:
+        os.remove("response.txt")
+    except FileNotFoundError:
+        pass
+
+def response_available():
+    """Check if a response is available."""
+    return os.path.exists("response.txt")
+
+def send_request(request):
+    """Send a request and wait for the response."""
+    write_request(request)
+    while not response_available():
+        time.sleep(1)
+    response = read_response()
+    clear_response()
+    return json.loads(response)
+
+def initialize_character():
+    """Prompt the user to create a new character or choose an existing one."""
+    character_list = send_request("get_character_list")
+    if character_list:
+        print("Existing characters:")
+        for idx, name in enumerate(character_list, start=1):
+            print(f"{idx}. {name}")
+        while True:
+            choice = input("Enter the number of the character to use, or 'new' to create a new character: ").strip()
+            if choice.lower() == "new":
+                while True:
+                    name = input("Enter character name: ").strip()
+                    job = input("Choose a job (Warrior, Mage, Rogue): ").strip().title()
+                    if job not in ["Warrior", "Mage", "Rogue"]:
+                        print("Invalid job.")
+                        continue
+                    result = send_request(f"create_new_character name={name} job={job}")
+                    if result["status"] == "success":
+                        print("Character created successfully!")
+                        send_request(f"set_active_character name={name}")
+                        break
+                    else:
+                        print(result["message"])
+                break
+            else:
+                try:
+                    num = int(choice)
+                    if 1 <= num <= len(character_list):
+                        selected_name = character_list[num - 1]
+                        send_request(f"set_active_character name={selected_name}")
+                        break
+                    else:
+                        print("Invalid number.")
+                except ValueError:
+                    print("Invalid input.")
+    else:
+        print("No existing characters. Please create a new character.")
+        while True:
+            name = input("Enter character name: ").strip()
+            job = input("Choose a job (Warrior, Mage, Rogue): ").strip().title()
+            if job not in ["Warrior", "Mage", "Rogue"]:
+                print("Invalid job.")
+                continue
+            result = send_request(f"create_new_character name={name} job={job}")
+            if result["status"] == "success":
+                print("Character created successfully!")
+                send_request(f"set_active_character name={name}")
+                break
+            else:
+                print(result["message"])
+
+def manage_character():
+    """Manage the active character via the microservice."""
+    while True:
+        print("\n--- Character Management Menu ---")
+        print("1. View Active Character")
+        print("2. Change Character Name")
+        print("3. Add Experience")
+        print("4. Level Up")
+        print("5. Return to Game")
+        choice = input("Enter your choice: ").strip()
+        if choice == "1":
+            character_data = send_request("get_active_character")
+            if "status" in character_data and character_data["status"] == "error":
+                print(character_data["message"])
+            else:
+                print("\n--- Active Character Status ---")
+                for key, value in character_data.items():
+                    print(f"{key}: {value}")
+        elif choice == "2":
+            new_name = input("Enter new name for your character: ").strip()
+            result = send_request(f"update_character_name new_name={new_name}")
+            if result["status"] == "success":
+                print("Character name updated successfully!")
+            else:
+                print(result["message"])
+        elif choice == "3":
+            try:
+                exp = int(input("Enter experience points to add: ").strip())
+                result = send_request(f"add_experience exp_points={exp}")
+                if result["status"] == "success":
+                    print(f"Added {exp} experience points.")
+                else:
+                    print(result["message"])
+            except ValueError:
+                print("Invalid number.")
+        elif choice == "4":
+            result = send_request("level_up")
+            if result["status"] == "success":
+                print("Level up successful!")
+                print("Updated character:")
+                for key, value in result["character"].items():
+                    print(f"{key}: {value}")
+            else:
+                print(result["message"])
+        elif choice == "5":
+            break
+        else:
+            print("Invalid option.")
+
+def change_name():
+    """Change the active character's name."""
+    new_name = input("Enter new name for your character: ").strip()
+    result = send_request(f"update_character_name new_name={new_name}")
+    if result["status"] == "success":
+        print("Character name updated successfully!")
+    else:
+        print(result["message"])
+
 
 if __name__ == "__main__":
     adventure = Game()
     adventure.start_menu()
     adventure.load_game_data()
-    adventure.adventurer.initialize_character()
+    initialize_character()
     adventure.game_menu()

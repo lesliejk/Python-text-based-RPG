@@ -1,17 +1,18 @@
 import json
 import os
+import time
 
-# File name for local storage (the JSON file will contain a list of characters)
+# File name for character data storage
 CHARACTER_DATA_FILE = "character_data.json"
 
-# Job-based stat increments per level (base increments; refine as needed)
+# Job-based stat increments per level
 JOB_STAT_INCREMENTS = {
     "Warrior": {"hp": 10, "mp": 5, "physical_attack": 3, "magical_attack": 1, "defense": 2, "hit_rate": 1},
     "Mage": {"hp": 5, "mp": 10, "physical_attack": 1, "magical_attack": 3, "defense": 1, "hit_rate": 2},
     "Rogue": {"hp": 7, "mp": 7, "physical_attack": 2, "magical_attack": 2, "defense": 2, "hit_rate": 3}
 }
 
-# Generate a leveling table for levels 1-40; e.g., base exp multiplied by 1.2 per level
+# Generate leveling table for levels 1-40
 def generate_leveling_table():
     leveling_table = {}
     base_exp = 1000
@@ -21,6 +22,7 @@ def generate_leveling_table():
 
 LEVELING_TABLE = generate_leveling_table()
 
+# Data management functions
 def load_character_data():
     """Load the list of characters from the JSON file."""
     if not os.path.exists(CHARACTER_DATA_FILE):
@@ -38,48 +40,39 @@ def save_character_data(data):
     with open(CHARACTER_DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-def double_confirm(prompt):
-    """Prompt the user and ask for confirmation (Y/N). Returns True if confirmed."""
-    while True:
-        choice = input(prompt + " (Y/N): ").strip().lower()
-        if choice == 'y':
-            return True
-        elif choice == 'n':
-            return False
-        else:
-            print("Please enter Y or N.")
-
-def create_new_character():
-    """Create a new character with double confirmation for name and job selection.
-       The user can type 'back' to cancel and return to the previous menu.
-       Returns the new character's name or None if the user cancels."""
+def update_active_character(updated_character):
+    """Update the active character in the JSON file."""
     data = load_character_data()
-    print("\n--- Create New Character ---")
-    
-    # Prompt for character name with an option to go back.
-    while True:
-        name = input("Enter character name (or type 'back' to return): ").strip()
-        if name.lower() == 'back':
-            return None
-        if any(char["name"].lower() == name.lower() for char in data):
-            print("A character with that name already exists. Please choose a different name.")
-        else:
-            if double_confirm(f"Confirm character name '{name}'?"):
-                break
+    for idx, char in enumerate(data):
+        if char["name"].lower() == updated_character["name"].lower():
+            data[idx] = updated_character
+            break
+    save_character_data(data)
 
-    # Prompt for job selection with an option to go back.
-    valid_jobs = ["Warrior", "Mage", "Rogue"]
-    while True:
-        job = input("Choose a job (Warrior, Mage, Rogue) (or type 'back' to return): ").strip().title()
-        if job.lower() == 'back':
-            return None
-        if job not in valid_jobs:
-            print("Invalid job choice. Please choose Warrior, Mage, or Rogue.")
-        else:
-            if double_confirm(f"Confirm job '{job}'?"):
-                break
+# Global variable for active character
+_active_character_name = None
 
-    # Initialize default stats
+def set_active_character(name):
+    """Set the active character by name."""
+    global _active_character_name
+    _active_character_name = name
+
+def get_active_character():
+    """Return the active character object."""
+    data = load_character_data()
+    for char in data:
+        if char["name"].lower() == _active_character_name.lower():
+            return char
+    return None
+
+# Microservice operations (non-interactive)
+def create_new_character(name, job):
+    """Create a new character if name is unique and job is valid."""
+    data = load_character_data()
+    if any(char["name"].lower() == name.lower() for char in data):
+        return {"status": "error", "message": "Name already exists"}
+    if job not in ["Warrior", "Mage", "Rogue"]:
+        return {"status": "error", "message": "Invalid job"}
     character = {
         "name": name,
         "job": job,
@@ -95,110 +88,42 @@ def create_new_character():
     }
     data.append(character)
     save_character_data(data)
-    print("Character created successfully!")
-    return name
+    return {"status": "success", "character": character}
 
-def choose_existing_character():
-    """List existing characters and let the user choose one.
-       The user can type 'back' to cancel and return to the previous menu.
-       If no characters exist, display a message and return None."""
-    data = load_character_data()
-    if not data:
-        print("No existing characters found.")
-        input("Press Enter to return to the previous menu...")
-        return None
-    print("\n--- Choose Existing Character ---")
-    for idx, char in enumerate(data, start=1):
-        print(f"{idx}. Name: {char['name']}, Job: {char['job']}, Level: {char['level']}")
-    while True:
-        choice = input("Enter the number of the character you want to use (or type 'back' to return): ").strip()
-        if choice.lower() == 'back':
-            return None
-        try:
-            num = int(choice)
-            if 1 <= num <= len(data):
-                return data[num - 1]["name"]
-            else:
-                print("Invalid number. Please try again.")
-        except ValueError:
-            print("Please enter a valid number.")
-
-def choose_or_create_character():
-    """At game start, allow the user to create a new character or choose an existing one.
-       Returns the active character's name.
-       The user can also choose to exit the selection menu."""
-    while True:
-        print("\nSelect an option:")
-        print("1. Create a new character")
-        print("2. Choose an existing character")
-        print("3. Exit")
-        option = input("Enter 1, 2, or 3: ").strip()
-        if option == "1":
-            new_char = create_new_character()
-            if new_char is not None:
-                return new_char
-            else:
-                print("Returning to selection menu.")
-        elif option == "2":
-            existing_char = choose_existing_character()
-            if existing_char is not None:
-                return existing_char
-            else:
-                print("Returning to selection menu.")
-        elif option == "3":
-            exit("Exiting the game.")
-        else:
-            print("Invalid option. Please try again.")
-
-
-# Global variable to hold the active character's name
-_active_character_name = None
-
-def set_active_character(name):
-    global _active_character_name
-    _active_character_name = name
-
-def get_active_character():
-    """Return the active character object from the list (by matching the name)."""
-    data = load_character_data()
-    for char in data:
-        if char["name"].lower() == _active_character_name.lower():
-            return char
-    return None
-
-def update_active_character(updated_character):
-    """Update the active character in the JSON file with the provided updated_character."""
-    data = load_character_data()
-    for idx, char in enumerate(data):
-        if char["name"].lower() == updated_character["name"].lower():
-            data[idx] = updated_character
-            break
-    save_character_data(data)
-
-def update_character_name():
-    """Update the active character's name with confirmation and persist the change."""
-    active_char = get_active_character()
-    if not active_char:
-        print("No active character selected.")
-        return
-    current_name = active_char.get("name", "Unknown")
-    print(f"Current character name: {current_name}")
-    new_name = input("Enter new name for your character: ").strip()
-    if double_confirm(f"Confirm change character name to '{new_name}'?"):
-        # Check for duplicate names
-        data = load_character_data()
-        if any(char["name"].lower() == new_name.lower() for char in data):
-            print("A character with that name already exists. Name change cancelled.")
-            return
-        active_char["name"] = new_name
-        for character in data:
-            if character["name"] == current_name:
-                character["name"] = new_name
-        save_character_data(data)
-        set_active_character(new_name)
-        print("Character name updated successfully!")
-    else:
-        print("Name change cancelled.")
+# def update_character_name(new_name):
+#     """Update the active character's name if unique."""
+#     active_char = get_active_character()
+#     if not active_char:
+# <<<<<<< HEAD
+#         return {"status": "error", "message": "No active character"}
+#     data = load_character_data()
+#     if any(char["name"].lower() == new_name.lower() for char in data if char["name"].lower() != active_char["name"].lower()):
+#         return {"status": "error", "message": "Name already exists"}
+#     active_char["name"] = new_name
+#     update_active_character(active_char)
+#     set_active_character(new_name)
+#     return {"status": "success", "character": active_char}
+# =======
+#         print("No active character selected.")
+#         return
+#     current_name = active_char.get("name", "Unknown")
+#     print(f"Current character name: {current_name}")
+#     new_name = input("Enter new name for your character: ").strip()
+#     if double_confirm(f"Confirm change character name to '{new_name}'?"):
+#         # Check for duplicate names
+#         data = load_character_data()
+#         if any(char["name"].lower() == new_name.lower() for char in data):
+#             print("A character with that name already exists. Name change cancelled.")
+#             return
+#         active_char["name"] = new_name
+#         for character in data:
+#             if character["name"] == current_name:
+#                 character["name"] = new_name
+#         save_character_data(data)
+#         set_active_character(new_name)
+#         print("Character name updated successfully!")
+#     else:
+#         print("Name change cancelled.")
 
 def view_character():
     """Display the active character's status."""
@@ -220,23 +145,19 @@ def save_current_character():
         print("No active character to save.")
 
 def add_experience(exp_points):
-    """Add experience points to the active character.
-       Future battle or quest systems will call this function."""
+    """Add experience to the active character."""
     active_char = get_active_character()
     if not active_char:
-        print("No active character found.")
-        return
+        return {"status": "error", "message": "No active character"}
     active_char["experience"] += exp_points
     update_active_character(active_char)
-    print(f"Added {exp_points} experience points. Total experience: {active_char['experience']}.")
+    return {"status": "success", "character": active_char}
 
 def level_up():
-    """Level up the active character repeatedly if enough experience is available.
-       Uses the LEVELING_TABLE for requirements and automatically increments stats."""
+    """Level up the active character if enough experience is available."""
     active_char = get_active_character()
     if not active_char:
-        print("No active character found.")
-        return
+        return {"status": "error", "message": "No active character"}
     leveled = False
     while active_char["level"] < 40:
         current_level = active_char["level"]
@@ -246,9 +167,7 @@ def level_up():
         active_char["level"] += 1
         active_char["experience"] -= required_exp
         active_char["experienceToNextLevel"] = LEVELING_TABLE[active_char["level"]]
-        
-        increments = JOB_STAT_INCREMENTS.get(active_char["job"], 
-            {"hp": 5, "mp": 5, "physical_attack": 1, "magical_attack": 1, "defense": 1, "hit_rate": 1})
+        increments = JOB_STAT_INCREMENTS.get(active_char["job"], {"hp": 5, "mp": 5, "physical_attack": 1, "magical_attack": 1, "defense": 1, "hit_rate": 1})
         active_char["hp"] += increments["hp"]
         active_char["mp"] += increments["mp"]
         active_char["physical_attack"] += increments["physical_attack"]
@@ -258,53 +177,89 @@ def level_up():
         leveled = True
     update_active_character(active_char)
     if leveled:
-        print("\nLevel up successful!")
+        return {"status": "success", "character": active_char}
     else:
-        print("Not enough experience to level up.")
-    view_character()
+        return {"status": "error", "message": "Not enough experience"}
 
-def character_main_menu():
-    """A simple menu for character management.
-       Options include viewing active character, changing name, saving character, adding experience, leveling up, and returning to game."""
-    while True:
-        print("\n--- Character Management Menu ---")
-        print("1. View Active Character")
-        print("2. Change Character Name")
-        print("3. Save Character")
-        print("4. Add Experience and Level Up (simulate)")
-        print("5. Return to Game")
-        choice = input("Enter your choice: ").strip()
-        if choice == "1":
-            view_character()
-        elif choice == "2":
-            update_character_name()
-        elif choice == "3":
-            save_current_character()
-        elif choice == "4":
-            try:
-                exp = int(input("Enter experience points to add: ").strip())
-            except ValueError:
-                print("Invalid number.")
-                continue
-            add_experience(exp)
-            level_up()
-        elif choice == "5":
-            break
-        else:
-            print("Invalid option. Please try again.")
+# File handling functions for communication
+def write_response(response):
+    """Write the response to response.txt."""
+    with open("response.txt", "w") as f:
+        f.write(response)
 
-def main_menu():
-    """Initialize character selection.
-       Allows the user to create a new character or choose an existing one.
-       Sets the active character by its name."""
-    active_name = choose_or_create_character()
-    set_active_character(active_name)
-    print(f"Active character set to: {active_name}")
+def read_request():
+    """Read the request from request.txt."""
+    try:
+        with open("request.txt", "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return None
 
-def get_character_name():
-    return _active_character_name
+def clear_request():
+    """Remove request.txt after processing."""
+    try:
+        os.remove("request.txt")
+    except FileNotFoundError:
+        pass
 
-# Only call main_menu() if this module is run directly (for testing purposes)
+def request_available():
+    """Check if a request is available."""
+    return os.path.exists("request.txt")
+
+def parse_request(request):
+    """Parse the request string into command and parameters."""
+    parts = request.split()
+    command = parts[0]
+    params = {}
+    for part in parts[1:]:
+        if "=" in part:
+            key, value = part.split("=", 1)
+            params[key] = value
+    return command, params
+
+# Main microservice loop
 if __name__ == "__main__":
-    main_menu()
-    character_main_menu()
+    print("Character Microservice is running. Waiting for requests...")
+    while True:
+        if request_available():
+            request = read_request()
+            clear_request()
+            command, params = parse_request(request)
+            if command == "get_character_list":
+                data = load_character_data()
+                names = [char["name"] for char in data]
+                response = json.dumps(names)
+            elif command == "create_new_character":
+                name = params.get("name")
+                job = params.get("job")
+                result = create_new_character(name, job)
+                response = json.dumps(result)
+            elif command == "set_active_character":
+                name = params.get("name")
+                data = load_character_data()
+                if any(char["name"].lower() == name.lower() for char in data):
+                    set_active_character(name)
+                    response = json.dumps({"status": "success"})
+                else:
+                    response = json.dumps({"status": "error", "message": "Character not found"})
+            elif command == "get_active_character":
+                character = get_active_character()
+                if character:
+                    response = json.dumps(character)
+                else:
+                    response = json.dumps({"status": "error", "message": "No active character"})
+            # elif command == "update_character_name":
+            #     new_name = params.get("new_name")
+            #     # result = update_character_name(new_name)
+            #     response = json.dumps(result)
+            elif command == "add_experience":
+                exp_points = int(params.get("exp_points", 0))
+                result = add_experience(exp_points)
+                response = json.dumps(result)
+            elif command == "level_up":
+                result = level_up()
+                response = json.dumps(result)
+            else:
+                response = json.dumps({"status": "error", "message": "Unknown command"})
+            write_response(response)
+        time.sleep(1)  # Prevent excessive CPU usage

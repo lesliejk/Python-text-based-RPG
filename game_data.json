@@ -309,7 +309,7 @@
     }],
     "settings": {
         "image_display": false,
-        "theme_sounds": true
+        "theme_sounds": false
     }
 
 }
