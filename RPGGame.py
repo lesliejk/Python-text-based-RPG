@@ -20,7 +20,7 @@ def exit_game():
             print("Thank you for playing!")
             exit()
         else:
-            print("Sorry I could not understand that command. Please try another command.")
+            comm_err()
 
 
 class Help:
@@ -200,6 +200,9 @@ class Game:
         zone.get_directions()
 
     def display_image(self, byte_array):
+        """
+        Displays image from bytes with default image viewer
+        """
         from PIL import Image  # To display images
         import io
         byte_image = io.BytesIO(byte_array)
@@ -209,7 +212,6 @@ class Game:
     def play_theme(self, theme_bytes):
         """
         Plays audio file from bytes
-
         """
         import pygame
         import io
@@ -247,6 +249,9 @@ class Game:
         print(f'Successfully loaded save file {slot}')
 
     def export_game_data(self):
+        """
+        Parses objects out to dictionaries to store in json
+        """
         data = {"zone_data": self.export_map_data(), "quest_data": self.export_quest_data(),
                 "npc_data": self.export_npc_data(), "settings": self.export_settings()}
         return data
@@ -284,6 +289,10 @@ class Game:
         return zone_data
 
     def game_menu(self):
+        """
+        Acts as default menu after starting the adventure
+        :return:
+        """
         while True:
             self._help.message()
             zone = self.zones[self.adventurer.location]
